@@ -1,7 +1,7 @@
 CC=gcc
 AC=fasm
 
-.PHONY: build clean
+.PHONY: build clean qemu
 
 build: boot.bin filesystem.bin disk.iso
 
@@ -15,7 +15,10 @@ filesystem.bin:
 disk.iso: boot.bin filesystem.bin
 	dd if=/dev/zero of=./disk.iso bs=512 count=2048
 	dd if=./boot.bin of=./disk.iso conv=notrunc
-	dd if=./filesystem.bin of=./disk.iso conv=notrunc bs=512 seek=1 
+	dd if=./filesystem.bin of=./disk.iso conv=notrunc bs=512 seek=1
+
+qemu: build 
+	qemu-system-i386 ./disk.iso
 
 clean:
 	rm ./boot.bin

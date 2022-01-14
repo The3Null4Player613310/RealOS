@@ -5,13 +5,7 @@ io_print_char:		;uses al to print ascii char
 	mov bh, 0x01
 	int 10h
 	jmp io_return
-io_print_string:	;uses si to print null terminated string
-	lodsb
-	or al, al
-	jz io_return
-	call io_print_char
-	jmp io_print_string
-io_print_newline:
+io_print_newline:	;prints newline
 	push ax
 	mov al, 0x0A
 	call io_print_char
@@ -19,7 +13,7 @@ io_print_newline:
 	call io_print_char
 	pop ax
 	jmp io_return
-io_print_backspace:
+io_print_backspace:	;prints backspace
 	push ax
 	mov al, 0x08
 	call io_print_char
@@ -29,6 +23,15 @@ io_print_backspace:
 	call io_print_char
 	pop ax
 	jmp io_return
+io_print_string:	;uses si to print null terminated string
+	lodsb
+	or al, al
+	jz io_return
+	call io_print_char
+	jmp io_print_string
+io_print_string_ln:	;uses si to print null terminated string with new line
+	call io_print_string
+	call io_print_newline
 io_get_key:
 	xor al, al
 	mov ah, 0x01
@@ -63,21 +66,22 @@ io_get_string:
 	je io_get_string_backspace
 	cmp al, 0x0D
 	je io_get_string_terminate
+	inc cl
 	stosb
 	call io_print_char
 	jmp io_get_string
 	io_get_string_backspace:
+		or cl, cl
+		jz io_get_string
+		dec cl
 		dec di
 		call io_print_backspace
 		jmp io_get_string
 	io_get_string_terminate:
-		mov al, 0x0A
-		stosb
-		mov al, 0x0D
-		stosb
 		mov al, 0x00
 		stosb
 		call io_print_newline
+		xor cl, cl
 		jmp io_return
 io_return:
 	ret

@@ -19,8 +19,8 @@ boot_loop:
 	;call io_print_char
 	mov di, command
 	call io_get_string
-	;mov si, command
-	;call io_print_string	
+	mov si, command
+	call io_print_string_ln	
 	jmp boot_loop
 boot_exit:
 	hlt
