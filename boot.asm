@@ -5,18 +5,29 @@ org 0x7c00
 include "io.asm"
 
 boot_init:
+	push ds
 	push es
 	push cs
+	push cs
 	pop es
-	
+	pop ds
+
 	mov si, logo
 	call io_print_string
 boot_loop:
+	;call io_get_char
+	;call io_print_char
+	mov di, command
+	call io_get_string
+	;mov si, command
+	;call io_print_string	
 	jmp boot_loop
 boot_exit:
 	hlt
 
 logo db "NullOS",10,13,0
+command db 0
+times 63 db 0
 
 times 446-($-$$) db 0		;boot v1
 dw 0x0080			;boot flag
