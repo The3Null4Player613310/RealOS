@@ -3,20 +3,25 @@ org 0x7c00
 
 ;include "foo.asm"
 include "io.asm"
-;include "fat.asm"
+include "fat.asm"
 
 boot_init:
-	push ds
+	push ds			;sync segments for variables
 	push es
 	push cs
 	push cs
 	pop es
 	pop ds
+	
 
-	mov ax, 0x0013
+	mov [drive], dl		; mov current drive to memory
+
+	mov ax, 0x0013		; set graphics mode
 	int 10h
 
-	mov si, msg_logo
+	call fat_load	
+
+	mov si, msg_logo	; print logo
 	call io_print_string
 boot_loop:
 	;call io_get_char
@@ -25,13 +30,15 @@ boot_loop:
 	mov di, command
 	call io_get_string
 	mov si, command
-	call io_print_string_ln	
+	call io_print_string_ln
+	;jmp 0x7A00
 	jmp boot_loop
 boot_exit:
 	hlt
 
 msg_logo db "RealOS",10,13,0
 msg_error db "ERROR",10,13,0
+drive db 0x7F
 command db 0
 times 63 db 0
 
