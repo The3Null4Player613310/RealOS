@@ -3,6 +3,7 @@ org 0x7c00
 
 ;include "foo.asm"
 include "io.asm"
+;include "fat.asm"
 
 boot_init:
 	push ds
@@ -12,11 +13,15 @@ boot_init:
 	pop es
 	pop ds
 
-	mov si, logo
+	mov ax, 0x0013
+	int 10h
+
+	mov si, msg_logo
 	call io_print_string
 boot_loop:
 	;call io_get_char
-	;call io_print_char
+	mov al, '>'
+	call io_print_char
 	mov di, command
 	call io_get_string
 	mov si, command
@@ -25,7 +30,8 @@ boot_loop:
 boot_exit:
 	hlt
 
-logo db "NullOS",10,13,0
+msg_logo db "RealOS",10,13,0
+msg_error db "ERROR",10,13,0
 command db 0
 times 63 db 0
 
