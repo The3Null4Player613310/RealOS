@@ -61,27 +61,32 @@ io_get_char:		;gets ascii character
 	je io_get_char
 	jmp io_return
 io_get_string:
-	call io_get_char
-	cmp al, 0x08
-	je io_get_string_backspace
-	cmp al, 0x0D
-	je io_get_string_terminate
-	inc cl
-	stosb
-	call io_print_char
-	jmp io_get_string
+	push di
+	push cx
+	xor cx, cx
+	io_get_string_loop:
+		call io_get_char
+		cmp al, 0x08
+		je io_get_string_backspace
+		cmp al, 0x0D
+		je io_get_string_terminate
+		inc cl
+		stosb
+		call io_print_char
+		jmp io_get_string_loop
 	io_get_string_backspace:
 		or cl, cl
-		jz io_get_string
+		jz io_get_string_loop
 		dec cl
 		dec di
 		call io_print_backspace
-		jmp io_get_string
+		jmp io_get_string_loop
 	io_get_string_terminate:
 		mov al, 0x00
 		stosb
 		call io_print_newline
-		xor cl, cl
+		pop cx
+		pop di
 		jmp io_return
 io_return:
 	ret
