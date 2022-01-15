@@ -6,10 +6,10 @@ fat_load:		; uses es and bx to write to ram from disk
 	mov ax, 0x0003
 	push ax
 	fat_load_loop:
-		mov bx, 0x07A0 ; boot sector 0x07c0
-		push bx
-		pop es
-		mov bx, 0x0000	; offset to end of boot sector
+		;mov bx, 0x07A0 ; boot sector 0x07c0
+		;push bx
+		;pop es
+		mov bx, 0x7A00	; offset to end of boot sector
 		mov al, 0x01	; sec c
 		mov cx, 0x0002	; cyl 0, sec 2
 		mov dh, 0x00	; hed 0

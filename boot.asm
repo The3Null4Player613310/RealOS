@@ -4,6 +4,7 @@ org 0x7c00
 ;include "foo.asm"
 include "io.asm"
 include "fat.asm"
+;include "debug.asm"
 
 boot_init:
 	push ds			;sync segments for variables
@@ -13,13 +14,16 @@ boot_init:
 	pop es
 	pop ds
 	
-
 	mov [drive], dl		; mov current drive to memory
 
 	mov ax, 0x0013		; set graphics mode
 	int 10h
 
-	call fat_load	
+	call fat_load
+	
+	;push cs		; get code segment offset
+	;pop ax
+	;call debug_print_hex_word
 
 	mov si, msg_logo	; print logo
 	call io_print_string
@@ -31,7 +35,6 @@ boot_loop:
 	call io_get_string
 	mov si, command
 	call io_print_string_ln
-	;jmp 0x7A00
 	jmp boot_loop
 boot_exit:
 	hlt
