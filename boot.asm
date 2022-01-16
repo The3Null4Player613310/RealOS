@@ -55,7 +55,7 @@ times 63 db 0
 times 446-($-$$) db 0		;boot v3
 p1_boot_flag	db 0x80		;boot flag
 p1_start_head	db 0x00		;head
-p1_start_cs	db 0x0002	;cyl / sec
+p1_start_cs	dw 0x0002	;cyl / sec
 p1_part_type	db 0x01		;fat 12
 p1_end_head	db 0x20		;head
 p1_end_cs	dw 0x0020	;cyl / sec

@@ -33,7 +33,7 @@ fat_load_vbr:
 	mov al, 0x01	; sector count
 	mov bx, 0x7800	; offset to end of boot sector
 	mov cx, 0x0002	; cyl 0, sec 2
-	mov dh, 0x00	; hed 0
+	mov dh, [p1_start_head]	; hed 0
 	call fat_load
 	pop dx
 	pop cx
