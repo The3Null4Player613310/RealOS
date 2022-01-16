@@ -19,7 +19,7 @@ boot_init:
 	mov ax, 0x0013		; set graphics mode
 	int 10h
 
-	call fat_load
+	call fat_load_vbr
 	
 	;push cs		; get code segment offset
 	;pop ax
@@ -28,8 +28,8 @@ boot_init:
 	push cs
 	pop ds
 
-	;mov ax, 0x7C00		; lower bound of dump
-	;mov bx, 0x7E00		; upper bound of dump
+	;mov ax, 0x7A00		; lower bound of dump
+	;mov bx, 0x7B00		; upper bound of dump
 	;call debug_dump
 
 	mov si, msg_logo	; print logo
@@ -52,14 +52,17 @@ drive db 0x7F
 command db 0
 times 63 db 0
 
-times 446-($-$$) db 0		;boot v1
-dw 0x0080			;boot flag
-dw 0x0002
-dw 0x2001			;fat 12
-dw 0x0020
-dw 0x0001
-dw 0x0000
-dw 0x07FF
+times 446-($-$$) db 0		;boot v3
+p1_boot_flag	db 0x80		;boot flag
+p1_start_head	db 0x00		;head
+p1_start_cs	db 0x0002	;cyl / sec
+p1_part_type	db 0x01		;fat 12
+p1_end_head	db 0x20		;head
+p1_end_cs	dw 0x0020	;cyl / sec
+p1_lba_low	dw 0x0001	;lba
+p1_lba_high	dw 0x0000	;lba
+p1_blk_low	dw 0x07FF	;blocks
+p1_blk_high	dw 0x0000	;blocks
 times 510-($-$$) db 0		;mbr partition
 dw 0xAA55			;magic word
 times (1024*1024)-($-$$) db 0	;storage
