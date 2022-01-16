@@ -16,10 +16,9 @@ boot_init:
 	
 	mov [drive], dl		; mov current drive to memory
 
-	mov ax, 0x0013		; set graphics mode
-	int 10h
+	call io_clear		;set graphics mode
 
-	call fat_load_vbr
+	call fat_load_vbr	;load volume boot record
 	
 	;push cs		; get code segment offset
 	;pop ax
