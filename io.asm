@@ -1,10 +1,12 @@
 io_init:
 jmp io_end
 io_print_char:		;uses al to print ascii char
+	push bx
 	mov ah, 0x0E
 	mov bh, 0x01
 	mov bl, 0x0A
 	int 10h
+	pop bx
 	jmp io_return
 io_print_newline:	;prints newline
 	push ax

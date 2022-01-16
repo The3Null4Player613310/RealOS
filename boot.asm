@@ -25,6 +25,13 @@ boot_init:
 	;pop ax
 	;call debug_print_hex_word
 
+	push cs
+	pop ds
+
+	;mov ax, 0x7C00		; lower bound of dump
+	;mov bx, 0x7E00		; upper bound of dump
+	;call debug_dump
+
 	mov si, msg_logo	; print logo
 	call io_print_string
 boot_loop:

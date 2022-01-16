@@ -1,6 +1,5 @@
 fat_init:
 jmp fat_end
-msg_fat_error db "fat error",0
 fat_load:		; uses es and bx to write to ram from disk
 	push es
 	mov ax, 0x0003
@@ -21,7 +20,7 @@ fat_load:		; uses es and bx to write to ram from disk
 		pop es
 		jmp fat_return
 	fat_load_error:
-		mov si, msg_fat_error
+		mov si, msg_error
 		call io_print_string_ln
 		mov ah, 0x00	; reset disk subsystem
 		int 13h
