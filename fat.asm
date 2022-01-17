@@ -56,7 +56,7 @@ fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh t
 		jmp fat_return
 	fat_load_error:
 		mov si, msg_error
-		call io_print_string_ln
+		call output_print_string_ln
 		mov ah, 0x00	; reset disk subsystem
 		int 13h
 		pop ax

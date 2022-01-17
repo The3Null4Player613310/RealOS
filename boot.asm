@@ -2,7 +2,9 @@ use16
 org 0x7c00
 
 ;include "foo.asm"
-include "io.asm"
+include "output.asm"
+include "input.asm"
+;include "io.asm"
 include "fat.asm"
 include "debug.asm"
 
@@ -16,7 +18,7 @@ boot_init:
 	
 	mov [drive], dl		; mov current drive to memory
 
-	call io_clear		; set graphics mode
+	call output_clear		; set graphics mode
 
 	call fat_load_vbr	; load volume boot record
 	
@@ -34,15 +36,15 @@ boot_init:
 	;call debug_dump
 
 	mov si, msg_logo	; print logo
-	call io_print_string
+	call output_print_string
 boot_loop:
-	;call io_get_char
+	;call input_get_char
 	mov al, '>'
-	call io_print_char
+	call output_print_char
 	mov di, command
-	call io_get_string
+	call input_get_string
 	mov si, command
-	call io_print_string_ln
+	call output_print_string_ln
 	jmp boot_loop
 boot_exit:
 	hlt

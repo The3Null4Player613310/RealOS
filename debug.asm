@@ -23,7 +23,7 @@ debug_print_hex_nibble:	; uses ax to print a hex nibble
 		add ax, 0x41
 		jmp debug_print_hex_nibble_terminate
 	debug_print_hex_nibble_terminate:
-		call io_print_char
+		call output_print_char
 		pop ax
 		jmp debug_return
 debug_dump:		; uses ax and bx as lower bound and upper bound for dump
@@ -33,7 +33,7 @@ debug_dump:		; uses ax and bx as lower bound and upper bound for dump
 		lodsw
 		call debug_print_hex_word
 		mov al, ' '
-		call io_print_char
+		call output_print_char
 		mov ax, si
 		cmp ax, bx
 		jb debug_dump_loop
