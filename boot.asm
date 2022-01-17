@@ -3,7 +3,7 @@ org 0x7c00
 
 ;include "foo.asm"
 include "output.asm"
-include "input.asm"
+;include "input.asm"
 ;include "io.asm"
 include "fat.asm"
 include "debug.asm"
@@ -22,7 +22,9 @@ boot_init:
 
 	call fat_load_vbr	; load volume boot record
 	
-	call fat_load_root	; load root dir	
+	call fat_load_fat	; load file allocation table
+
+	;call fat_load_root	; load root dir	
 
 	;push cs		; get code segment offset
 	;pop ax
@@ -39,13 +41,13 @@ boot_init:
 	call output_print_string
 boot_loop:
 	;call input_get_char
-	mov al, '>'
-	call output_print_char
-	mov di, command
-	call input_get_string
-	mov si, command
-	call output_print_string_ln
-	jmp boot_loop
+	;mov al, '>'
+	;call output_print_char
+	;mov di, command
+	;call input_get_string
+	;mov si, command
+	;call output_print_string_ln
+	;jmp boot_loop
 boot_exit:
 	hlt
 

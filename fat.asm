@@ -1,4 +1,4 @@
-addr_vbr = 0x7800		; 512 bytes ; volume boot record
+addr_vbr = 0x7600		; 512 bytes ; volume boot record
 addr_vbr_oem = addr_vbr + 0x03	; 008 bytes ; oem name
 addr_vbr_bps = addr_vbr + 0x0B	; 002 bytes ; bytes per sector
 addr_vbr_spc = addr_vbr + 0x0D	; 001 bytes ; sectors per cluster
@@ -14,31 +14,33 @@ addr_vbr_hsl = addr_vbr + 0x1C	; 004 bytes ; hidden sector count low
 addr_vbr_hsh = addr_vbr + 0x1E	; 002 bytes ; hidden sector count high
 addr_vbr_tsl = addr_vbr + 0x20	; 004 bytes ; total sector count low
 addr_vbr_tsh = addr_vbr + 0x22	; 002 bytes ; total sector count high
-addr_root = addr_vbr + 0x0200	; var bytes ; root directory
+addr_fat = addr_vbr + 0x0200	; var bytes ; root directory
 fat_init:
 jmp fat_end
-fat_get_sector:		; uses (cs) ax to get sector value
-	and ah, 0x3F
-	shr ax, 0x08
+fat_get_sector:		; uses (cs) cx to get sector value
+	mov ax, cx
+	and ax, 0x003F
 	sub ax, 0x01
 	jmp fat_return
-fat_get_cylindar:	; uses (cs) ax to get cylindar value
-	shr ah, 0x06
+fat_get_cylindar:	; uses (cs) cx to get cylindar value
+	mov ax, cx
+	shr al, 0x06
+	ror ax, 0x08
 	jmp fat_return
 fat_set_sector:		; uses (sector) ax, (cs) cx to set sector in cs
 	push ax
 	add ax, 0x01
-	shl ax, 0x08
-	and ax, 0x3F00
-	and cx, 0xC0FF
+	and ax, 0x003F
+	and cx, 0xFFC0
 	or cx, ax
 	pop ax
 	jmp fat_return
 fat_set_cylindar:	; uses (cylindar) ax, (cs) cx to set cylindar in cs
 	push ax
 	shl ah, 0x06
-	and ax, 0xC0FF
-	and cx, 0x3F00
+	ror ax, 0x08
+	and ax, 0xFFC0
+	and cx, 0x003F
 	or cx, ax
 	pop ax
 	jmp fat_return
@@ -65,22 +67,34 @@ fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh t
 		jz fat_return
 		push ax
 		jmp fat_load_loop
-fat_load_vbr:
+fat_load_vbr:		; load volume boot record
 	push bx
 	push cx
 	push dx
-	mov al, 0x01		; sector count
-	mov bx, addr_vbr	; offset to vbr in memory
 	mov cx, [p1_start_cs]	; cyl 0, sec 2
 	mov dh, [p1_start_head]	; hed 0
+	mov al, 0x01		; sector count
+	mov bx, addr_vbr	; offset to vbr in memory
 	call fat_load
 	pop dx
 	pop cx
 	pop bx
 	jmp fat_return
-fat_load_root:
-	;mov ax, [addr_vbr_spf]
-	;call debug_print_hex_word
+fat_load_fat:
+	push bx
+	push cx
+	push dx
+	mov cx, [p1_start_cs]
+	call fat_get_sector
+	inc ax;
+	call fat_set_sector
+	mov dh, [p1_start_head]
+	mov al, [addr_vbr_spf]
+	mov bx, addr_fat
+	call fat_load
+	pop dx
+	pop cx
+	pop bx
 	jmp fat_return
 fat_return:
 	ret
