@@ -24,7 +24,7 @@ boot_init:
 	
 	call fat_load_fat	; load file allocation table
 
-	;call fat_load_root	; load root dir	
+	call fat_load_root	; load root dir	
 
 	;push cs		; get code segment offset
 	;pop ax
@@ -52,10 +52,8 @@ boot_exit:
 	hlt
 
 msg_logo db "RealOS",10,13,0
-msg_error db "ERROR",10,13,0
+msg_error db "ER",10,13,0
 drive db 0x7F
-command db 0
-times 1 db 0			; 63
 
 times 446-($-$$) db 0		; boot v3
 p1_boot_flag	db 0x80		; boot flag

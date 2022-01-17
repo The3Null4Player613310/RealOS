@@ -34,7 +34,6 @@ addr_dte_fcv = 0x1A		; 0002 bytes ; first cluster value
 addr_dte_tbl = 0x1C		; 0004 bytes ; total byte count low
 addr_dte_tbh = 0x1E		; 0002 bytes ; total byte count high
 fat_init:
-
 jmp fat_end
 addr_vbr dw 0x7A00
 addr_fat dw 0x0000
@@ -89,25 +88,16 @@ fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh t
 		jz fat_return
 		push ax
 		jmp fat_load_loop
-fat_load_vbr:		; load volume boot record
-	push bx
-	push cx
-	push dx
-	mov cx, [p1_start_cs]	; cyl 0, sec 2
-	mov dh, [p1_start_head]	; hed 0
-	mov al, 0x01		; sector count
-	mov bx, [addr_vbr]	; offset to vbr in memory
+fat_load_vbr:	; load volume boot record
+	mov cx, [p1_start_cs]		; cyl 0, sec 2
+	mov dh, [p1_start_head]		; hed 0
+	mov al, 0x01			; sector count
+	mov bx, [addr_vbr]		; offset to vbr in memory
 	call fat_load
-	pop dx
-	pop cx
-	pop bx
 	jmp fat_return
-fat_load_fat:
-	push bx
-	push cx
-	push dx
+fat_load_fat:	; load file allocation table
 	
-	mov bx,	[addr_vbr]		; update fat_addr
+	mov bx,	[addr_vbr]		; update addr_fat
 	mov [addr_fat], bx
 	mov ax, [bx + addr_vbr_spf]
 	mov dx, [bx + addr_vbr_bps]
@@ -121,15 +111,45 @@ fat_load_fat:
 
 	mov dh, [p1_start_head]		; set head
 
-	mov bx, [addr_vbr]		; set sector count
+	;mov bx, [addr_vbr]		; set sector count
 	mov al, [bx + addr_vbr_spf]
 
 	mov bx, [addr_fat]		; set buffer address
 	call fat_load
 
-	pop dx
+	jmp fat_return
+fat_load_root:	; load root directory
+
+	mov ax, [addr_fat]		; update addr_dir
+	mov [addr_dir], ax
+	mov bx, [addr_vbr]
+	mov ax, [bx + addr_vbr_mre]
+	mov dx, 0x0020
+	mul dx
+	sub [addr_dir], ax
+	
+	mov ax, [bx + addr_vbr_tfc]	; increment sector in cs by (tfc*spf)+1
+	mov dl, [bx + addr_vbr_spf]
+	mul dx
+	inc ax
+	mov dx, ax
+	mov cx, [p1_start_cs]
+	call fat_get_sector
+	add ax, dx	
+	call fat_set_sector
+
+	mov dh, [p1_start_head]		; set head
+
+	push cx				; set sector count
+	mov ax,	[addr_fat]
+	sub ax, [addr_dir]
+	mov cx, [bx + addr_vbr_bps]
+	div cx
 	pop cx
-	pop bx
+		
+	mov bx, [addr_dir]		; set buffer address
+	call fat_load
+
 	jmp fat_return
 fat_return:
 	ret
