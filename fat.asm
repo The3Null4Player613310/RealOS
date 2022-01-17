@@ -21,9 +21,6 @@ fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh t
 	mov ah, 0x03
 	push ax
 	fat_load_loop:
-		;mov bx, 0x07A0 ; boot sector 0x07c0
-		;push bx
-		;pop es
 		pop ax
 		push ax
 		mov dl, [drive]	; drv 0
@@ -57,8 +54,8 @@ fat_load_vbr:
 	pop bx
 	jmp fat_return
 fat_load_root:
-	mov ax, [addr_vbr_bps]
-	call debug_print_hex_word
+	;mov ax, [addr_vbr_spf]
+	;call debug_print_hex_word
 	jmp fat_return
 fat_return:
 	ret

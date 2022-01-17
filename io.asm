@@ -6,7 +6,7 @@ io_clear:
 	int 10h
 	pop ax
 	jmp io_return
-io_print_char:		;uses al to print ascii char
+io_print_char:			; uses al to print ascii char
 	push bx
 	mov ah, 0x0E
 	mov bh, 0x01
@@ -14,7 +14,7 @@ io_print_char:		;uses al to print ascii char
 	int 10h
 	pop bx
 	jmp io_return
-io_print_newline:	;prints newline
+io_print_newline:		; prints newline
 	push ax
 	mov al, 0x0A
 	call io_print_char
@@ -22,7 +22,7 @@ io_print_newline:	;prints newline
 	call io_print_char
 	pop ax
 	jmp io_return
-io_print_backspace:	;prints backspace
+io_print_backspace:		; prints backspace
 	push ax
 	mov al, 0x08
 	call io_print_char
@@ -32,15 +32,16 @@ io_print_backspace:	;prints backspace
 	call io_print_char
 	pop ax
 	jmp io_return
-io_print_string:	;uses si to print null terminated string
+io_print_string:		; uses si to print null terminated string
 	lodsb
 	or al, al
 	jz io_return
 	call io_print_char
 	jmp io_print_string
-io_print_string_ln:	;uses si to print null terminated string with new line
+io_print_string_ln:		; uses si to print null terminated string with new line
 	call io_print_string
 	call io_print_newline
+	jmp io_return
 io_get_key:
 	xor al, al
 	mov ah, 0x01
@@ -49,22 +50,22 @@ io_get_key:
 	mov ah, 0x00
 	int 16h
 	io_get_key_alpha:
-		cmp al, 0x61 ; lower bound alpha
+		cmp al, 0x61	; lower bound alpha
 		jb io_get_key_num
-		cmp al, 0x7A ; upper bound alpha
+		cmp al, 0x7A 	; upper bound alpha
 		ja io_get_key_num
-		sub al, 0x20 ; ascii alpha offset
+		sub al, 0x20 	; ascii alpha offset
 		jmp io_return
 	io_get_key_num:
-		cmp al, 0x2F ; lower bound num
+		cmp al, 0x2F 	; lower bound num
 		jb io_get_key_other
-		cmp al, 0x3A ; upper bound num
+		cmp al, 0x3A	; upper bound num
 		ja io_get_key_other
-		sub al, 0x00 ; ascii num offset
+		sub al, 0x00	; ascii num offset
 		jmp io_return
 	io_get_key_other:
 		jmp io_return
-io_get_char:		;gets ascii character
+io_get_char:			; gets ascii character
 	call io_get_key
 	cmp al, 0x00
 	je io_get_char
