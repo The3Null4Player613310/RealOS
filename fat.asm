@@ -17,6 +17,31 @@ addr_vbr_tsh = addr_vbr + 0x22	; 002 bytes ; total sector count high
 addr_root = addr_vbr + 0x0200	; var bytes ; root directory
 fat_init:
 jmp fat_end
+fat_get_sector:		; uses (cs) ax to get sector value
+	and ah, 0x3F
+	shr ax, 0x08
+	sub ax, 0x01
+	jmp fat_return
+fat_get_cylindar:	; uses (cs) ax to get cylindar value
+	shr ah, 0x06
+	jmp fat_return
+fat_set_sector:		; uses (sector) ax, (cs) cx to set sector in cs
+	push ax
+	add ax, 0x01
+	shl ax, 0x08
+	and ax, 0x3F00
+	and cx, 0xC0FF
+	or cx, ax
+	pop ax
+	jmp fat_return
+fat_set_cylindar:	; uses (cylindar) ax, (cs) cx to set cylindar in cs
+	push ax
+	shl ah, 0x06
+	and ax, 0xC0FF
+	and cx, 0x3F00
+	or cx, ax
+	pop ax
+	jmp fat_return
 fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh to write to ram from disk
 	mov ah, 0x03
 	push ax
