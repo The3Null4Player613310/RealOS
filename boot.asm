@@ -6,7 +6,7 @@ include "output.asm"
 ;include "input.asm"
 ;include "io.asm"
 include "fat.asm"
-include "debug.asm"
+;include "debug.asm"
 
 boot_init:
 	push ds			; sync segments for variables
@@ -24,7 +24,7 @@ boot_init:
 	
 	call fat_load_fat	; load file allocation table
 
-	call fat_load_root	; load root dir	
+	;call fat_load_root	; load root dir	
 
 	;push cs		; get code segment offset
 	;pop ax
@@ -33,12 +33,12 @@ boot_init:
 	push cs
 	pop ds
 
-	;mov ax, 0x7A00		; lower bound of dump
-	;mov bx, 0x7B00		; upper bound of dump
+	;mov ax, 0x7600		; lower bound of dump
+	;mov bx, 0x7700		; upper bound of dump
 	;call debug_dump
 
 	mov si, msg_logo	; print logo
-	call output_print_string
+	call output_print_string_ln
 boot_loop:
 	;call input_get_char
 	;mov al, '>'
@@ -51,8 +51,8 @@ boot_loop:
 boot_exit:
 	hlt
 
-msg_logo db "RealOS",10,13,0
-msg_error db "ER",10,13,0
+msg_logo db "RealOS",0		;10,13,0
+msg_error db "ER",0		;10,13,0
 drive db 0x7F
 
 times 446-($-$$) db 0		; boot v3

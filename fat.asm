@@ -65,6 +65,40 @@ fat_set_cylindar:	; uses (cylindar) ax, (cs) cx to set cylindar in cs
 	or cx, ax
 	pop ax
 	jmp fat_return
+fat_set_chs:		; uses (sector) ax to set chs address
+	push bx
+	mov bx, [addr_vbr]
+	push ax
+	mov cx, [bx + addr_vbr_spt]
+	xor dx, dx
+	div cx
+	;inc dx
+	pop cx
+	push dx				;here
+	push cx
+	mov cx, [bx + addr_vbr_thc]
+	xor dx, dx
+	div cx
+	pop cx
+	push dx
+	push cx
+	mov ax, [bx + addr_vbr_spt]
+	mov cx, [bx + addr_vbr_thc]
+	mul cx
+	mov cx, ax
+	pop ax
+	xor dx, dx
+	div cx
+	push ax	
+	pop ax
+	call fat_set_cylindar
+	pop dx
+	mov dh, dl
+	xor dl, dl
+	pop ax
+	call fat_set_sector
+	pop bx
+	jmp fat_return
 fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh to write to ram from disk
 	mov ah, 0x03
 	push ax
@@ -88,6 +122,24 @@ fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh t
 		jz fat_return
 		push ax
 		jmp fat_load_loop
+fat_load_sec:		; uses (offset) bx, (sector) ax, (count) cx
+	cmp cx, 0x0000
+	je fat_return
+	push ax
+	push bx
+	push cx
+	call fat_set_chs
+	mov al, 0x01
+	call fat_load
+	pop cx
+	pop dx
+	pop ax
+	dec cx
+	inc ax
+	mov bx, [addr_vbr]
+	add dx, [bx + addr_vbr_bps]
+	mov bx, dx
+	jmp fat_load_sec
 fat_load_vbr:	; load volume boot record
 	mov cx, [p1_start_cs]		; cyl 0, sec 2
 	mov dh, [p1_start_head]		; hed 0
@@ -95,28 +147,18 @@ fat_load_vbr:	; load volume boot record
 	mov bx, [addr_vbr]		; offset to vbr in memory
 	call fat_load
 	jmp fat_return
-fat_load_fat:	; load file allocation table
-	
+fat_load_fat:		; load file allocation table	
 	mov bx,	[addr_vbr]		; update addr_fat
 	mov [addr_fat], bx
 	mov ax, [bx + addr_vbr_spf]
 	mov dx, [bx + addr_vbr_bps]
 	mul dx
 	sub [addr_fat], ax
-
-	mov cx, [p1_start_cs]		; increment sector in cs
-	call fat_get_sector
-	inc ax;
-	call fat_set_sector
-
-	mov dh, [p1_start_head]		; set head
-
-	;mov bx, [addr_vbr]		; set sector count
-	mov al, [bx + addr_vbr_spf]
-
-	mov bx, [addr_fat]		; set buffer address
-	call fat_load
-
+	
+	mov ax, 0x0002			; load sectors
+	mov cx, [bx + addr_vbr_spf]
+	mov bx, [addr_fat]
+	call fat_load_sec
 	jmp fat_return
 fat_load_root:	; load root directory
 
@@ -128,28 +170,22 @@ fat_load_root:	; load root directory
 	mul dx
 	sub [addr_dir], ax
 	
-	mov ax, [bx + addr_vbr_tfc]	; increment sector in cs by (tfc*spf)+1
+	mov ax, [bx + addr_vbr_tfc]	; set sector to (tfc*spf)+1
 	mov dl, [bx + addr_vbr_spf]
 	mul dx
 	inc ax
-	mov dx, ax
-	mov cx, [p1_start_cs]
-	call fat_get_sector
-	add ax, dx	
-	call fat_set_sector
 
-	mov dh, [p1_start_head]		; set head
-
-	push cx				; set sector count
+	push ax				; set sector count
 	mov ax,	[addr_fat]
 	sub ax, [addr_dir]
 	mov cx, [bx + addr_vbr_bps]
+	xor dx, dx
 	div cx
-	pop cx
-		
-	mov bx, [addr_dir]		; set buffer address
-	call fat_load
+	mov cx, ax
+	pop ax
 
+	mov bx, [addr_dir]		; set buffer address
+	call fat_load_sec
 	jmp fat_return
 fat_return:
 	ret
