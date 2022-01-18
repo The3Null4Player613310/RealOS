@@ -24,7 +24,7 @@ boot_init:
 	
 	call fat_load_fat	; load file allocation table
 
-	;call fat_load_root	; load root dir	
+	call fat_load_root	; load root dir	
 
 	;push cs		; get code segment offset
 	;pop ax

@@ -33,6 +33,7 @@ addr_dte_mdv = 0x18		; 0002 bytes ; modification date value
 addr_dte_fcv = 0x1A		; 0002 bytes ; first cluster value 
 addr_dte_tbl = 0x1C		; 0004 bytes ; total byte count low
 addr_dte_tbh = 0x1E		; 0002 bytes ; total byte count high
+addr_dte_neo = 0x20		; 0032 bytes ; next entry offset
 fat_init:
 jmp fat_end
 addr_vbr dw 0x7A00
@@ -155,18 +156,18 @@ fat_load_fat:		; load file allocation table
 	mul dx
 	sub [addr_fat], ax
 	
-	mov ax, 0x0002			; load sectors
+	mov ax, 0x0002			; load sectors ; wrong should use sector count derived from p1
 	mov cx, [bx + addr_vbr_spf]
 	mov bx, [addr_fat]
 	call fat_load_sec
 	jmp fat_return
-fat_load_root:	; load root directory
+fat_load_root:		; load root directory
 
 	mov ax, [addr_fat]		; update addr_dir
 	mov [addr_dir], ax
 	mov bx, [addr_vbr]
 	mov ax, [bx + addr_vbr_mre]
-	mov dx, 0x0020
+	mov dx, addr_dte_neo
 	mul dx
 	sub [addr_dir], ax
 	
@@ -187,6 +188,10 @@ fat_load_root:	; load root directory
 	mov bx, [addr_dir]		; set buffer address
 	call fat_load_sec
 	jmp fat_return
+;fat_load_file:		; load (file) si to (offset) bx
+;	mov bx, [addr_dir]
+;	
+;	jmp fat_return
 fat_return:
 	ret
 fat_end:
