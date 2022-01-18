@@ -100,6 +100,19 @@ fat_set_chs:		; uses (sector) ax to set chs address
 	call fat_set_sector
 	pop bx
 	jmp fat_return
+fat_fix_vbr:		;
+	push es
+	mov dl, [drive]
+	mov ah, 0x08
+	int 13h
+	mov bx, [addr_vbr]
+	shr dx, 8
+	inc dx
+	mov [bx + addr_vbr_thc], dx
+	call fat_get_sector
+	mov [bx + addr_vbr_spt], ax
+	pop es
+	jmp fat_return
 fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh to write to ram from disk
 	mov ah, 0x03
 	push ax
@@ -147,6 +160,7 @@ fat_load_vbr:	; load volume boot record
 	mov al, 0x01			; sector count
 	mov bx, [addr_vbr]		; offset to vbr in memory
 	call fat_load
+	call fat_fix_vbr
 	jmp fat_return
 fat_load_fat:		; load file allocation table	
 	mov bx,	[addr_vbr]		; update addr_fat
