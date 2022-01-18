@@ -171,7 +171,7 @@ fat_load_root:	; load root directory
 	sub [addr_dir], ax
 	
 	mov ax, [bx + addr_vbr_tfc]	; set sector to (tfc*spf)+1
-	mov dl, [bx + addr_vbr_spf]
+	mov dx, [bx + addr_vbr_spf]
 	mul dx
 	inc ax
 
