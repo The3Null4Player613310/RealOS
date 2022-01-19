@@ -2,13 +2,19 @@ use16
 org 0x7c00
 
 ;include "foo.asm"
-include "output.asm"
+;include "output.asm"
 ;include "input.asm"
+include "put.asm"
 ;include "io.asm"
 include "fat.asm"
 ;include "debug.asm"
 
 boot_init:
+
+	mov ax, 0x8000		; set up stack
+	mov ss, ax
+	mov sp, 0x0000
+
 	push ds			; sync segments for variables
 	push es
 	push cs
@@ -18,7 +24,7 @@ boot_init:
 	
 	mov [drive], dl		; mov current drive to memory
 
-	call output_clear		; set graphics mode
+	;call output_clear		; set graphics mode
 
 	call fat_load_vbr	; load volume boot record
 	
@@ -30,15 +36,22 @@ boot_init:
 	;pop ax
 	;call debug_print_hex_word
 
-	push cs
-	pop ds
+	;mov ax, 0x40
+	;call fat_set_chs
+	;mov ax, cx
+	;call debug_print_hex_word
+	;mov ax, dx
+	;call debug_print_hex_word
+
+	;push cs
+	;pop ds
 
 	;mov ax, 0x7600		; lower bound of dump
 	;mov bx, 0x7700		; upper bound of dump
 	;call debug_dump
 
-	mov si, msg_logo	; print logo
-	call output_print_string_ln
+	;mov si, msg_logo	; print logo
+	;call output_print_string_ln
 boot_loop:
 	;call input_get_char
 	;mov al, '>'
@@ -49,10 +62,12 @@ boot_loop:
 	;call output_print_string_ln
 	;jmp boot_loop
 boot_exit:
+	mov al, 'H'
+	call put_char
 	hlt
 
-msg_logo db "RealOS",0		;10,13,0
-msg_error db "ER",0		;10,13,0
+;msg_logo db "RealOS",0		;10,13,0
+;msg_error db "ER",0		;10,13,0
 drive db 0x7F
 
 times 446-($-$$) db 0		; boot v3

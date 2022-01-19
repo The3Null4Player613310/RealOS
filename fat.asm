@@ -126,8 +126,10 @@ fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh t
 		pop ax
 		jmp fat_return
 	fat_load_error:
-		mov si, msg_error
-		call output_print_string_ln
+		mov al, 'E'
+		call put_char
+		;mov si, msg_error
+		;call output_print_string_ln
 		mov ah, 0x00	; reset disk subsystem
 		int 13h
 		pop ax
@@ -137,6 +139,7 @@ fat_load:		; uses (buffer) es, (count) al, (offset) bx, (cs) cx, and (head) dh t
 		push ax
 		jmp fat_load_loop
 fat_load_sec:		; uses (offset) bx, (sector) ax, (count) cx
+	;call put_char
 	cmp cx, 0x0000
 	je fat_return
 	push ax
@@ -145,6 +148,8 @@ fat_load_sec:		; uses (offset) bx, (sector) ax, (count) cx
 	call fat_set_chs
 	mov al, 0x01
 	call fat_load
+	;mov ax, sp
+	;call put_char
 	pop cx
 	pop dx
 	pop ax
@@ -162,7 +167,7 @@ fat_load_vbr:	; load volume boot record
 	call fat_load
 	call fat_fix_vbr
 	jmp fat_return
-fat_load_fat:		; load file allocation table	
+fat_load_fat:		; load file allocation table
 	mov bx,	[addr_vbr]		; update addr_fat
 	mov [addr_fat], bx
 	mov ax, [bx + addr_vbr_spf]
@@ -176,7 +181,6 @@ fat_load_fat:		; load file allocation table
 	call fat_load_sec
 	jmp fat_return
 fat_load_root:		; load root directory
-
 	mov ax, [addr_fat]		; update addr_dir
 	mov [addr_dir], ax
 	mov bx, [addr_vbr]
