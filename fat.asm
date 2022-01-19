@@ -207,21 +207,30 @@ fat_load_root:		; load root directory
 	call fat_load_sec
 	jmp fat_return
 fat_load_file:		; load (file) si to (offset) bx
-;	mov bx, [addr_vbr]
-;	mov cx, [bx + addr_vbr_mre]
-;	mov bx, [addr_dir]
-;	fat_load_file_loop:
-;		or cx, cx
-;		jz fat_return		; file not found		
-;		
-;		dec cx;
-;		add bx, addr_dte_neo
-;		jmp fat_load_file_loop
-;	fat_load_file_load:
-;		mov ax, [bx + addr_dte_fcv]
-;		sub ax, 0x02
-;		;mov cx, []
-;		jmp fat_return
+	push bx
+	mov bx, [addr_vbr]
+	mov cx, [bx + addr_vbr_mre]
+	mov bx, [addr_dir]
+	fat_load_file_loop:
+		or cx, cx
+		jz fat_load_file_error	; file not found
+		mov ax, [bx + addr_dte_sfe]
+		cmp ax, 0x534f		; SO ; upper 3 bits are not used ; wrong
+		je fat_load_file_load
+		dec cx;
+		add bx, addr_dte_neo
+		jmp fat_load_file_loop
+	fat_load_file_load:
+		mov ax, [bx + addr_dte_fcv]
+		sub ax, 0x02
+		pop bx
+		
+		jmp fat_return
+	fat_load_file_error:
+		mov al, 'E'
+		call put_char
+		pop bx
+		jmp fat_return
 fat_return:
 	ret
 fat_end:
