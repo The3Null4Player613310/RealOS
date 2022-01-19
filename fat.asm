@@ -189,7 +189,7 @@ fat_load_root:		; load root directory
 	mul dx
 	sub [addr_dir], ax
 	
-	mov ax, [bx + addr_vbr_tfc]	; set sector to (tfc*spf)+1
+	mov ax, [bx + addr_vbr_tfc]	; set sector to (tfc*spf)+1 ; also wrong
 	mov dx, [bx + addr_vbr_spf]
 	mul dx
 	inc ax
@@ -206,10 +206,22 @@ fat_load_root:		; load root directory
 	mov bx, [addr_dir]		; set buffer address
 	call fat_load_sec
 	jmp fat_return
-;fat_load_file:		; load (file) si to (offset) bx
+fat_load_file:		; load (file) si to (offset) bx
+;	mov bx, [addr_vbr]
+;	mov cx, [bx + addr_vbr_mre]
 ;	mov bx, [addr_dir]
-;	
-;	jmp fat_return
+;	fat_load_file_loop:
+;		or cx, cx
+;		jz fat_return		; file not found		
+;		
+;		dec cx;
+;		add bx, addr_dte_neo
+;		jmp fat_load_file_loop
+;	fat_load_file_load:
+;		mov ax, [bx + addr_dte_fcv]
+;		sub ax, 0x02
+;		;mov cx, []
+;		jmp fat_return
 fat_return:
 	ret
 fat_end:
