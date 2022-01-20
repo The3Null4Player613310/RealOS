@@ -2,11 +2,15 @@ use16
 org 0x7C00
 
 ;include "foo.asm"
-;include "output.asm"
-;include "input.asm"
-include "put.asm"
+include "sysvars.asm"
+include "fatvars.asm"
 ;include "io.asm"
-include "fat.asm"
+;include "input.asm"
+;include "output.asm"
+include "put.asm"
+include "disk.asm"
+include "load.asm"
+;include "fat.asm"
 ;include "debug.asm"
 
 boot_init:
@@ -22,22 +26,24 @@ boot_init:
 	pop es
 	pop ds
 	
-	mov [drive], dl		; mov current drive to memory
+	mov [addr_svs_pdv], dl	; mov current drive to memory
 
-	;call output_clear		; set graphics mode
+	;call output_clear	; set graphics mode
 
-	call fat_load_vbr	; load volume boot record
+	call disk_get_params	; get drive parameters
+
+	call load_vbr		; load volume boot record
 	
-	call fat_load_fat	; load file allocation table
+	;call fat_load_fat	; load file allocation table
 
-	call fat_load_root	; load root dir	
+	call load_root		; load root dir	
 
 	;push cs		; get code segment offset
 	;pop ax
 	;call debug_print_hex_word
 
 	;mov ax, 0x40
-	;call fat_set_chs
+	;call disk_set_chs
 	;mov ax, cx
 	;call debug_print_hex_word
 	;mov ax, dx
@@ -46,8 +52,11 @@ boot_init:
 	;push cs
 	;pop ds
 
-	;mov ax, 0x7600		; lower bound of dump
-	;mov bx, 0x7700		; upper bound of dump
+	;mov ax, [addr_svs_spt]
+	;call debug_print_hex_word
+
+	;mov ax, 0x7A00		; lower bound of dump
+	;mov bx, 0x7B00		; upper bound of dump
 	;call debug_dump
 
 	;mov si, msg_logo	; print logo
@@ -68,7 +77,7 @@ boot_exit:
 
 ;msg_logo db "RealOS",0		;10,13,0
 ;msg_error db "ER",0		;10,13,0
-drive db 0x7F
+;drive db 0x7F
 
 times 446-($-$$) db 0		; boot v3
 p1_boot_flag	db 0x80		; boot flag
