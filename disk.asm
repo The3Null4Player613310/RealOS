@@ -1,4 +1,5 @@
 disk_init:
+	call disk_get_params	; get drive parameters
 jmp disk_end
 disk_get_sector:		; uses (cs) cx to get sector value
 	mov ax, cx
@@ -133,11 +134,12 @@ disk_get_params:		; get primary disk params
 ;	jmp disk_return
 disk_set_chs:
 	push ax
+
 	mov bx, [addr_svs_spt]
 	xor dx, dx
 	div bx
 
-	push ax
+	push dx
 
 	mov ax, [addr_svs_spt]
 	mov bx, [addr_svs_thc]
@@ -188,13 +190,13 @@ disk_load_sec:			; uses (buffer) es, (offset) bx, (cs) cx, and (head) dh to writ
 		mov ax, 0x0201	; load one sector to ram
 		int 13h		; problem child
 		jc disk_load_sec_error
-		;mov al, 'S'
-		;call put_char
+		mov al, 'S'
+		call put_char
 		pop ax
 		jmp disk_return
 	disk_load_sec_error:
-		;mov al, 'E'
-		;call put_char
+		mov al, 'E'
+		call put_char
 		;mov si, msg_error
 		;call output_print_string_ln
 		mov ah, 0x00	; reset disk subsystem
