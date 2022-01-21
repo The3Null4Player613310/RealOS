@@ -40,13 +40,15 @@ boot_init:
 
 	call output_clear	; set graphics mode
 
-	;mov ax, 0x0400 		; 1024
+	;mov ax, [addr_svs_thc]
 	;call debug_print_hex_word
-	;call disk_set_chs
-	;call disk_get_sec
-	;call debug_print_hex_word	
+	;mov ax, [addr_svs_tph]
+	;call debug_print_hex_word
+	;mov ax, [addr_svs_spt]
+	;call debug_print_hex_word
 	
 	;xor ax, ax
+	;mov ax, 0x0035
 	;test_loop:
 	;	call debug_print_hex_word
 	;	push ax
@@ -59,7 +61,7 @@ boot_init:
 	;	call output_print_newline
 	;	pop ax
 	;	inc ax
-	;	cmp al, 0x00
+	;	cmp al, 0x45
 	;	jne test_loop
 
 	;mov ax, [addr_svs_spt]

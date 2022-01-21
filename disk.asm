@@ -30,19 +30,9 @@ disk_set_cylindar:		; uses (cylindar) ax, (cs) cx to set cylindar in cs
 	jmp disk_return
 disk_get_params:		; get primary disk params
 	push es
-	push es
 	mov dl, [addr_svs_pdv]
 	mov ah, 0x08
 	int 13h
-
-	push ds			; get dbt
-	push es
-	pop ds
-	mov si, di
-
-	pop ax			; set es
-	pop es
-	push ax
 
 	shr dx, 0x08		; set total head count
 	inc dx
@@ -53,20 +43,18 @@ disk_get_params:		; get primary disk params
 	mov [addr_svs_spt], ax
 
 	call disk_get_cylindar	; set tracks per head
+	inc ax			; here
 	mov [addr_svs_tph], ax
 	
-	add si, 0x03
-
-	xor ah, ah		; set bytes per sector
-	lodsb			; why 0x00F0
-
-	mov cx, ax
-	mov bx, 0x80
+	mov bx, 0x0003		; set bytes per sector
+	xor ah, ah
+	mov cl, [es:di+bx]	; why 0x00F0
+	
+	mov bx, 0x0080
 	shl bx, cl
 	mov bx, 0x0200		; hardcoded value
 	mov [addr_svs_bps], bx
 
-	pop ds
 	pop es
 	jmp disk_return
 ;disk_set_chs:			; uses (sector) ax to set chs address
@@ -169,16 +157,26 @@ disk_set_chs:
 	call disk_set_sector	
 	jmp disk_return
 disk_get_sec:
+	push dx
+	
 	call disk_get_cylindar
 	mov bx, [addr_svs_thc]
 	mul bx
-	shr dx, 0x08
-	add ax, dx
+
+	pop dx
+	push dx
+
+	mov bx, dx
+	shr bx, 0x08
+	add ax, bx
+
 	mov bx, [addr_svs_spt]
 	mul bx
 	mov bx, ax
+
 	call disk_get_sector
-	add ax, bx	
+	add ax, bx
+	pop dx	
 	jmp disk_return
 disk_load_sec:			; uses (buffer) es, (offset) bx, (cs) cx, and (head) dh to write to ram from disk
 	mov ah, 0x03
