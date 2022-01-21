@@ -7,7 +7,7 @@ include "fatvars.asm"
 ;include "io.asm"
 ;include "input.asm"
 ;include "output.asm"
-include "put.asm"
+;include "put.asm"
 include "disk.asm"
 include "load.asm"
 ;include "fat.asm"
@@ -71,8 +71,9 @@ boot_loop:
 	;call output_print_string_ln
 	;jmp boot_loop
 boot_exit:
-	mov al, 'H'
-	call put_char
+	;mov al, 'H'
+	int 10h
+	;call put_char
 	hlt
 
 ;msg_logo db "RealOS",0		;10,13,0

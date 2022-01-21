@@ -76,7 +76,7 @@ disk_get_params:		; get primary disk params
 ;	div cx
 ;	;inc dx
 ;	pop cx
-;	push dx			;here
+;	push dx			; here
 ;	push cx
 ;	mov cx, [addr_svs_thc]
 ;	xor dx, dx
@@ -102,34 +102,69 @@ disk_get_params:		; get primary disk params
 ;	call disk_set_sector
 ;	pop bx
 ;	jmp disk_return
+;disk_set_chs:
+;	push ax
+;	mov ax, [addr_svs_thc]	; 16 or 0x10
+;	mov bx, [addr_svs_spt]	; 63 or 0x3F
+;	mul bx
+;
+;	mov bx, ax
+;	pop ax
+;	xor dx,dx
+;	div bx			; ax / 0x0630
+;
+;	push dx
+;
+;	call disk_set_cylindar
+;
+;	mov bx, [addr_svs_spt]	; 63 or 0x3F
+;	pop ax
+;	xor dx,dx
+;	div bx
+;
+;	push  ax
+;
+;	mov ax,dx
+;	call disk_set_sector
+;
+;	pop dx
+;	shl dx, 0x08
+;	
+;	jmp disk_return
 disk_set_chs:
 	push ax
-	mov ax, [addr_svs_thc]
 	mov bx, [addr_svs_spt]
+	xor dx, dx
+	div bx
+
+	push ax
+
+	mov ax, [addr_svs_spt]
+	mov bx, [addr_svs_thc]
 	mul bx
 
 	mov bx, ax
+	pop dx
 	pop ax
-	xor dx,dx
+	push dx
+	xor dx, dx
 	div bx
 
-	push dx
+	push ax
 
+	mov ax, dx
+	mov bx, [addr_svs_spt]
+	xor dx, dx
+	div bx
+
+	mov dx, ax		; head
+	shl dx, 0x08
+
+	pop ax			; track
 	call disk_set_cylindar
 
-	mov bx, [addr_svs_spt]
-	pop ax
-	xor dx,dx
-	div bx
-
-	push  ax
-
-	mov ax,dx
-	call disk_set_sector
-
-	pop dx
-	shl dx, 0x08
-	
+	pop ax			; sector
+	call disk_set_sector	
 	jmp disk_return
 disk_get_sec:
 	call disk_get_cylindar
