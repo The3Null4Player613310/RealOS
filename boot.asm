@@ -5,7 +5,6 @@ org 0x7C00
 include "sysvars.asm"
 include "fatvars.asm"
 ;include "io.asm"
-;include "fat.asm"
 
 boot_init:
 
@@ -36,8 +35,6 @@ boot_init:
 	call disk_load
 
 	call boot_libs
-
-	call output_clear	; set graphics mode
 
 	;mov ax, [addr_svs_thc]
 	;call debug_print_hex_word
@@ -129,6 +126,7 @@ dw 0xAA55			; magic word
 boot_libs:
 	include "output.asm"
 	include "input.asm"
+	;include "fat.asm"
 	;include "load.asm"
 	include "debug.asm"
 	ret

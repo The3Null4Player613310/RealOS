@@ -1,4 +1,5 @@
 output_init:
+	call output_clear	; set graphics mode
 jmp output_end
 output_clear:
 	push ax
