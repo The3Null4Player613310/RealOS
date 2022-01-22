@@ -49,7 +49,7 @@ disk_get_params:		; get primary disk params
 	mov bx, 0x0003		; set bytes per sector
 	xor ah, ah
 	mov cl, [es:di+bx]	; why 0x00F0
-	
+
 	mov bx, 0x0080
 	shl bx, cl
 	mov bx, 0x0200		; hardcoded value
@@ -121,6 +121,7 @@ disk_get_params:		; get primary disk params
 ;	
 ;	jmp disk_return
 disk_set_chs:
+	push bx
 	push ax
 
 	mov bx, [addr_svs_spt]
@@ -154,7 +155,9 @@ disk_set_chs:
 	call disk_set_cylindar
 
 	pop ax			; sector
-	call disk_set_sector	
+	call disk_set_sector
+
+	pop bx	
 	jmp disk_return
 disk_get_sec:
 	push dx

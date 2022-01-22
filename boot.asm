@@ -5,7 +5,6 @@ org 0x7C00
 include "sysvars.asm"
 include "fatvars.asm"
 ;include "io.asm"
-;include "load.asm"
 ;include "fat.asm"
 
 boot_init:
@@ -26,15 +25,15 @@ boot_init:
 	include "put.asm"
 	include "disk.asm"
 
-	mov bx, 0x7E00
-	mov cx, 0x0002
-	mov dh, 0x00
-	call disk_load_sec
+	;mov bx, 0x7E00		; emergency boot
+	;mov cx, 0x0002
+	;mov dh, 0x00
+	;call disk_load_sec
 
-	;mov ax, 0x0001
-	;mov cx, 0x0001
-	;mov bx, 0x7E00
-	;call disk_load
+	mov ax, 0x0001
+	mov bx, 0x7E00
+	mov cx, 0x0001
+	call disk_load
 
 	call boot_libs
 
@@ -63,9 +62,6 @@ boot_init:
 	;	inc ax
 	;	cmp al, 0x45
 	;	jne test_loop
-
-	;mov ax, [addr_svs_spt]
-	;call debug_print_hex_word
 
 	;call load_vbr		; load volume boot record
 	
@@ -98,13 +94,13 @@ boot_init:
 	call output_print_string_ln
 boot_loop:
 	;call input_get_char
-	;mov al, '>'
-	;call output_print_char
-	;mov di, command
-	;call input_get_string
-	;mov si, command
-	;call output_print_string_ln
-	;jmp boot_loop
+	mov al, '>'
+	call output_print_char
+	mov di, command
+	call input_get_string
+	mov si, command
+	call output_print_string_ln
+	jmp boot_loop
 boot_exit:
 	mov al, 'H'
 	call put_char
@@ -112,6 +108,7 @@ boot_exit:
 
 msg_logo db "RealOS",0		;10,13,0
 msg_error db "ER",0		;10,13,0
+command db "        ",0
 ;drive db 0x7F
 
 times 446-($-$$) db 0		; boot v3
@@ -131,7 +128,8 @@ dw 0xAA55			; magic word
 ;PART 2
 boot_libs:
 	include "output.asm"
-	;include "input.asm"
+	include "input.asm"
+	;include "load.asm"
 	include "debug.asm"
 	ret
 times (2*512)-($-$$) db 0	; storage
