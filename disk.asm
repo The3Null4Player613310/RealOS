@@ -191,8 +191,8 @@ disk_load_sec:			; uses (buffer) es, (offset) bx, (cs) cx, and (head) dh to writ
 		mov ax, 0x0201	; load one sector to ram
 		int 13h		; problem child
 		jc disk_load_sec_error
-		mov al, 'S'
-		call put_char
+		;mov al, 'S'
+		;call put_char
 		pop ax
 		jmp disk_return
 	disk_load_sec_error:

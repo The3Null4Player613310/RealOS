@@ -21,8 +21,8 @@ fat_fix_vbr:		; fix vbr
 	pop es
 	jmp fat_return
 fat_load_vbr:		; load volume boot record
-	mov al, 'V'
-	call put_char
+	;mov al, 'V'
+	;call put_char
 
 	mov cx, [p1_start_cs]		; cyl 0, sec 2
 	mov dh, [p1_start_head]		; hed 0
@@ -42,8 +42,8 @@ fat_load_vbr:		; load volume boot record
 	call fat_fix_vbr
 	jmp fat_return
 fat_load_fat:		; load file allocation table
-	mov al, 'F'
-	call put_char
+	;mov al, 'F'
+	;call put_char
 
 	mov ax, [addr_svs_dvs]		; update sector
 	add ax, [addr_svs_dvc]
@@ -66,8 +66,8 @@ fat_load_fat:		; load file allocation table
 	call disk_load
 	jmp fat_return
 fat_load_root:		; load root directory
-	mov al, 'R'
-	call put_char
+	;mov al, 'R'
+	;call put_char
 
 	mov bx, [addr_svs_dva]		; update sector
 	mov ax, [addr_svs_dfc]
@@ -99,6 +99,7 @@ fat_load_root:		; load root directory
 
 	mov ax, [addr_svs_dds]		; load sectors
 	mov bx, [addr_svs_dda]
+	mov cx, [addr_svs_ddc]
 	call disk_load
 	jmp fat_return
 ;fat_load_file:		; load (file) si to (offset) bx

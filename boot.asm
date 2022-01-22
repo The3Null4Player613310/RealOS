@@ -126,7 +126,7 @@ dw 0xAA55			; magic word
 boot_libs:
 	include "output.asm"
 	include "input.asm"
-	;include "fat.asm"
+	include "fat.asm"
 	;include "load.asm"
 	include "debug.asm"
 	ret
