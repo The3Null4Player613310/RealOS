@@ -15,6 +15,26 @@ string_length:
 		pop cx
 		pop si
 		jmp string_return
+string_copy:
+	push si
+	push di
+	string_copy_loop:
+		lodsb
+		or al, al
+		jz string_copy_terminate
+		stosb
+		jmp string_copy_loop
+	string_copy_terminate:
+		stosb
+		pop di
+		pop si
+		jmp string_return
+;string_compare:
+;	push si
+;	push di
+;	string_compare_loop:
+;		mov ax, [ds:si+bx]
+;		sub ax, [ds:di+bx]
 string_return:
 	ret
 string_end:	

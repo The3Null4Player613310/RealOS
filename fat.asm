@@ -4,9 +4,6 @@ fat_init:
 	call fat_load_root
 jmp fat_end
 addr_file db "FILENAME"
-;addr_vbr dw 0x7A00
-;addr_fat dw 0x0000
-;addr_dir dw 0x0000
 fat_fix_vbr:		; fix vbr
 	push es
 	mov dl, [addr_svs_pdv]
@@ -102,7 +99,7 @@ fat_load_root:		; load root directory
 	mov cx, [addr_svs_ddc]
 	call disk_load
 	jmp fat_return
-;fat_load_file:		; load (file) si to (offset) bx
+fat_load_file:		; load (file) si to (offset) bx
 ;	push bx
 ;	mov bx, [addr_vbr]
 ;	mov cx, [bx + addr_vbr_mre]
@@ -126,7 +123,7 @@ fat_load_root:		; load root directory
 ;		mov al, 'E'
 ;		call put_char
 ;		pop bx
-;		jmp fat_return
+		jmp fat_return
 fat_return:
 	ret
 fat_end:
