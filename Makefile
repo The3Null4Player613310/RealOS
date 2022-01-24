@@ -1,7 +1,7 @@
 CC=gcc
 AC=fasm
 LD=$(shell losetup -f 2>&1 | grep loop)
-BOOTSIZE=2
+BOOTSIZE=4
 DISKSIZE=2048
 PARTSIZE=$(shell expr $(DISKSIZE) - $(BOOTSIZE))
 

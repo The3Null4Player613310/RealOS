@@ -1,9 +1,11 @@
 fat_init:
+	;call fat_compare_test
 	call fat_load_vbr
 	call fat_load_fat
 	call fat_load_root
 jmp fat_end
-addr_file db "FILENAME"
+addr_query db "FILENAME",0
+addr_entry db "FILENAME"
 fat_fix_vbr:		; fix vbr
 	push es
 	mov dl, [addr_svs_pdv]
@@ -124,6 +126,83 @@ fat_load_file:		; load (file) si to (offset) bx
 ;		call put_char
 ;		pop bx
 		jmp fat_return
+fat_compare_test:
+	mov si, addr_query
+	mov di, addr_entry
+	call fat_compare
+	jnz fat_compare_test_fail
+	call debug_print_hex_word
+	mov al, 'S'
+	call put_char
+	jmp fat_return
+	fat_compare_test_fail:
+	call debug_print_hex_word
+	mov al, 'D'
+	call put_char
+	jmp fat_return
+fat_compare:		; compare (file name) si (file entry) di returns (word distance) ax
+	push si
+	push di
+	push bx
+	push cx
+	push dx
+	xor dx, dx
+	mov cl, 0x08
+	fat_compare_loop:
+		or cl, cl
+		jz fat_compare_terminate
+
+		mov ah, [ds:si]
+		mov al, [ds:di]		
+
+		cmp ax, 0x0020
+		je fat_compare_terminate		
+
+		cmp ah, al
+		je fat_compare_next
+		jg fat_compare_gtr
+		jl fat_compare_les
+	fat_compare_gtr:
+		xor bh, bh
+		mov bl, ah
+		add dx, bx
+		mov bl, al
+		sub dx, bx
+		jmp fat_compare_next
+	fat_compare_les:
+		xor bh, bh
+		mov bl, al
+		add dx, bx
+		mov bl, ah
+		sub dx, bx
+		jmp fat_compare_next
+	fat_compare_next:
+		dec cl
+		inc si
+		inc di
+		jmp fat_compare_loop
+	fat_compare_terminate:
+		mov ah, 0x00
+		mov al, [ds:si]
+		cmp ah, al
+		je fat_compare_success
+		jmp fat_compare_error
+		fat_compare_error:
+			mov ax, 0xFFFF
+			stc
+			jmp fat_compare_pop
+		fat_compare_success:
+			mov ax, dx
+			clc
+			or ax, ax
+			jmp fat_compare_pop
+		fat_compare_pop:
+			pop dx
+			pop cx
+			pop bx
+			pop di
+			pop si
+			jmp fat_return
 fat_return:
 	ret
 fat_end:
