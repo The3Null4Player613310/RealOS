@@ -87,6 +87,10 @@ boot_init:
 	;mov bx, 0x0600		; upper bound of dump
 	;call debug_dump
 
+	;mov bx, [addr_svs_dva]
+	;mov ax, [bx + addr_vbr_mre]
+	;call debug_print_hex_word
+
 	mov si, msg_logo	; print logo
 	call output_print_string_ln
 boot_loop:
@@ -96,7 +100,8 @@ boot_loop:
 	mov di, command
 	call input_get_string
 	mov si, command
-	call output_print_string_ln
+	call fat_load_file
+	;call output_print_string_ln
 	jmp boot_loop
 boot_exit:
 	mov al, 'H'
