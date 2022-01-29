@@ -4,86 +4,286 @@ fat_init:
 	call fat_load_fat
 	call fat_load_root
 jmp fat_end
-addr_query db "FILENAME",0
-addr_entry db "FILENAME"
-fat_compare_filename:		; compare (file name) si (file entry) di returns (word distance) ax
+addr_query db "FILENAME.EXT",0
+addr_entry db "FILENAMEEXT"
+fat_compare:
 	push si
 	push di
 	push bx
 	push cx
 	push dx
 	xor dx, dx
-	mov cl, 0x08
+	fat_compare_filename_start:
+		mov cl, 0x08
+		jmp fat_compare_filename_loop
 	fat_compare_filename_loop:
-		or cl, cl
-		jz fat_compare_filename_terminate
-
+		cmp cl, 0x00
+		je fat_compare_extension_start
+		
+		mov al, [ds:di]
 		mov ah, [ds:si]
-		mov al, [ds:di]		
+
+		cmp ax, 0x2E20
+		je fat_compare_filename_slip
+		cmp ax, 0x0020
+		je fat_compare_filename_slip
+
+		inc si
+
+		fat_compare_filename_slip:
+
+		inc di
+		dec cl
+
+		cmp ah, al
+		je fat_compare_filename_loop
+		cmp ax, 0x2E20
+		je fat_compare_filename_loop
+		cmp ax, 0x0020
+		je fat_compare_filename_loop
+
+		jmp fat_compare_inequal
+	fat_compare_extension_start:
+		mov cl, 0x03 
+		cmp ah, 0x00
+		jne fat_compare_extension_skip
+		jmp fat_compare_extension_loop
+	fat_compare_extension_skip:
+		inc si
+		jmp fat_compare_extension_loop
+	fat_compare_extension_loop:
+		cmp cl, 0x00
+		je fat_compare_equal
+
+		mov al, [ds:di]
+		mov ah, [ds:si]
 
 		cmp ax, 0x0020
-		je fat_compare_filename_terminate
+		je fat_compare_extension_slip
 
-		cmp ah, al
-		je fat_compare_filename_next
-		jg fat_compare_filename_gtr
-		jl fat_compare_filename_les
-	fat_compare_filename_gtr:
-		xor bh, bh
-		mov bl, ah
-		add dx, bx
-		mov bl, al
-		sub dx, bx
-		jmp fat_compare_filename_next
-	fat_compare_filename_les:
-		xor bh, bh
-		mov bl, al
-		add dx, bx
-		mov bl, ah
-		sub dx, bx
-		jmp fat_compare_filename_next
-	fat_compare_filename_next:
-		dec cl
 		inc si
+
+		fat_compare_extension_slip:
+
 		inc di
-		jmp fat_compare_filename_loop
-	fat_compare_filename_terminate:
-		mov ah, 0x2E	; '.'
-		mov al, [ds:si]
-		cmp ah, al
-		je fat_compare_filename_success
+		dec cl
 
-		mov ah, 0x00	; '\0'
 		cmp ah, al
-		je fat_compare_filename_success
+		je fat_compare_extension_loop
+		cmp ax, 0x0020
+		je fat_compare_extension_loop
 
-		jmp fat_compare_filename_error
-		fat_compare_filename_error:
-			mov ax, 0xFFFF
-			or ax, ax
-			stc
-			jmp fat_compare_filename_pop
-		fat_compare_filename_success:
-			mov ax, dx
-			or ax, ax
-			clc
-			jmp fat_compare_filename_pop
-		fat_compare_filename_pop:
-			pop dx
-			pop cx
-			pop bx
-			pop di
-			pop si
-			jmp fat_return
+		jmp fat_compare_inequal
+	fat_compare_equal:
+		mov ax, 0x0000
+		jmp fat_compare_terminate
+	fat_compare_inequal:
+		mov ax, 0x0001
+		jmp fat_compare_terminate
+	fat_compare_terminate:
+		pop dx
+		pop cx
+		pop bx
+		pop di
+		pop si
+		jmp fat_return
+fat_compare_test:
+	mov si, addr_query
+	mov di, addr_entry
+	call fat_compare
+	or ax, ax
+	jnz fat_compare_test_error
+	jz fat_compare_test_success
+	fat_compare_test_error:
+		mov al, 'E'
+		call put_char
+		jmp fat_compare_test_terminate
+	fat_compare_test_success:
+		mov al, 'S'
+		call put_char
+		jmp fat_compare_test_terminate
+	fat_compare_test_terminate:
+		jmp fat_return
+;fat_compare:
+;	push si
+;	push di
+;	push bx
+;	push cx
+;	push dx
+;	push di
+;	fat_compare_filename_start:
+;		pop di
+;		push di
+;		add di, addr_dte_sfn
+;		xor ch, ch
+;		mov cl, 0x08
+;		jmp fat_compare_filename_loop:
+;	fat_compare_filename_loop:
+;		mov ah, [ds:si]
+;		mov al, [ds:di]
+;		mov ch, [ds:si+1]
+;		cmp ax, 0x2E20
+;		je fat_compare_extension_start
+;		cmp ax, 0x0020
+;		je fat_compare_terminate
+;
+;		cmp ah, al
+;		jg fat_compare_filename_gtr
+;		jl fat_compare_filename_les
+;		jmp fat_compare_filename_nxt
+;
+;		fat_compare_filename_gtr:
+;			xor bh, bh
+;			mov bl, ah
+;			add dx, bx
+;			mov bl, al
+;			sub dx, bx
+;			jmp fat_compare_filename_nxt
+;		fat_compare_filename_les:
+;			xor bh, bh
+;			mov bl, al
+;			add dx, bx
+;			mov bl, ah
+;			sub dx, bx
+;			jmp fat_compare_filename_nxt
+;		fat_compare_filename_nxt:
+;
+;		inc si
+;		inc di
+;		dec cl
+;
+;		cmp cx, 0x2E00
+;		je fat_compare_extension_start
+;		cmp cx, 0x0000
+;		je fat_compare_terminate
+;		jmp fat_compare_filename_loop
+;	fat_compare_extension_start:
+;		pop di
+;		push di
+;		add di, addr_dte_sfe
+;		xor ch, ch
+;		mov cl, 0x03
+;		jmp fat_compare_extension_loop:
+;	fat_compare_extension_loop:
+;		mov ah, [ds:si]
+;		mov al, [ds:di]
+;		mov ch, [ds:si+1]
+;		cmp ax, 0x0020
+;		je fat_compare_terminate
+;
+;		cmp ah, al
+;		jg fat_compare_extension_gtr
+;		jl fat_compare_extension_les
+;		jmp fat_compare_extension_next
+;
+;		fat_compare_extension_gtr:
+;			xor bh, bh
+;			mov bl, ah
+;			add dx, bx
+;			mov bl, al
+;			sub dx, bx
+;			jmp fat_compare_extension_nxt
+;		fat_compare_extension_les:
+;			xor bh, bh
+;			mov bl, al
+;			add dx, bx
+;			mov bl, ah
+;			sub dx, bx
+;			jmp fat_compare_extension_nxt
+;		fat_compare_extension_nxt:
+;
+;		inc si
+;		inc di
+;		dec cl
+;
+;		cmp cx, 0x0000
+;		jmp fat_compare_extension_loop:
+;	fat_compare_terminate:
+;	pop di
+;	pop dx
+;	pop cx
+;	pop bx
+;	pop di
+;	pop si
+;	jmp fat_return
+;fat_compare_filename:		; compare (file name) si (file entry) di returns (word distance) ax
+;	push si
+;	push di
+;	push bx
+;	push cx
+;	push dx
+;	xor dx, dx
+;	mov cl, 0x08
+;	fat_compare_filename_loop:
+;		or cl, cl
+;		jz fat_compare_filename_terminate
+;
+;		mov ah, [ds:si]
+;		mov al, [ds:di]		
+;
+;		cmp ax, 0x0020
+;		je fat_compare_filename_terminate
+;
+;		cmp ah, al
+;		je fat_compare_filename_next
+;		jg fat_compare_filename_gtr
+;		jl fat_compare_filename_les
+;	fat_compare_filename_gtr:
+;		xor bh, bh
+;		mov bl, ah
+;		add dx, bx
+;		mov bl, al
+;		sub dx, bx
+;		jmp fat_compare_filename_next
+;	fat_compare_filename_les:
+;		xor bh, bh
+;		mov bl, al
+;		add dx, bx
+;		mov bl, ah
+;		sub dx, bx
+;		jmp fat_compare_filename_next
+;	fat_compare_filename_next:
+;		dec cl
+;		inc si
+;		inc di
+;		jmp fat_compare_filename_loop
+;	fat_compare_filename_terminate:
+;		mov ah, 0x2E	; '.'
+;		mov al, [ds:si]
+;		cmp ah, al
+;		je fat_compare_filename_success
+;
+;		mov ah, 0x00	; '\0'
+;		cmp ah, al
+;		je fat_compare_filename_success
+;
+;		jmp fat_compare_filename_error
+;		fat_compare_filename_error:
+;			mov ax, 0xFFFF
+;			or ax, ax
+;			stc
+;			jmp fat_compare_filename_pop
+;		fat_compare_filename_success:
+;			mov ax, dx
+;			or ax, ax
+;			clc
+;			jmp fat_compare_filename_pop
+;		fat_compare_filename_pop:
+;			pop dx
+;			pop cx
+;			pop bx
+;			pop di
+;			pop si
+;			jmp fat_return
 ;fat_compare_extension:
 ;	push si
 ;	push di
 ;	mov ah, 0x2E
 ;	fat_compare_extension_trim
 ;		mov al, [ds:si]
+;		inc si
 ;		cmp ah, al
 ;		je fat_compare_extension_loop
-;		inc si
 ;		jmp fat_compare_extension_trim
 ;	fat_compare_extension_loop:  
 ;	pop di
@@ -196,7 +396,8 @@ fat_load_file:		; load (file) si to (offset) bx
 		
 		mov di, bx
 		add di, addr_dte_sfn
-		call fat_compare_filename
+		call fat_compare
+		or ax, ax
 		jz fat_load_file_load
 
 		dec cx;
