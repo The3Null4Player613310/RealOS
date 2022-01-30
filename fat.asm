@@ -6,7 +6,7 @@ fat_init:
 jmp fat_end
 addr_query db "FILENAME.EXT",0
 addr_entry db "FILENAMEEXT"
-fat_compare:
+fat_compare:		; compare (filename) si to  (fileentry) di
 	push si
 	push di
 	push bx
@@ -386,8 +386,12 @@ fat_load_root:		; load root directory
 	jmp fat_return
 fat_load_file:		; load (file) si to (offset) bx
 	push bx
-	mov bx, [addr_svs_dva]
 
+	mov ax, [addr_svs_dds]		; update sector
+	add ax, [addr_svs_ddc]
+	mov [addr_svs_dcs], ax
+
+	mov bx, [addr_svs_dva]
 	mov cx, [bx + addr_vbr_mre]
 	mov bx, [addr_svs_dda]
 	fat_load_file_search:
@@ -396,15 +400,25 @@ fat_load_file:		; load (file) si to (offset) bx
 		
 		mov di, bx
 		add di, addr_dte_sfn
-		call fat_compare
+		call fat_compare	; returns 0 on match
 		or ax, ax
 		jz fat_load_file_load
 
-		dec cx;
+		dec cx
 		add bx, addr_dte_neo
 		jmp fat_load_file_search
 	fat_load_file_load:
 		mov ax, [bx + addr_dte_fcv]
+		sub ax, 0x0002
+
+		mov bx, [addr_svs_dva]
+		xor dx, dx
+		xor ch, ch
+		mov cl, [bx + addr_vbr_spc]
+		mul cx
+
+		add ax, [addr_svs_dcs]
+
 		call debug_print_hex_word
 		pop bx
 		
