@@ -15,7 +15,7 @@ string_length:
 		pop cx
 		pop si
 		jmp string_return
-string_copy:
+string_copy:		; copies a string from (string) si to (string) di
 	push si
 	push di
 	string_copy_loop:
@@ -29,12 +29,27 @@ string_copy:
 		pop di
 		pop si
 		jmp string_return
-;string_compare:
-;	push si
-;	push di
-;	string_compare_loop:
-;		mov ax, [ds:si+bx]
-;		sub ax, [ds:di+bx]
+string_compare:
+	push si
+	push di
+	string_compare_loop:
+		mov ah, [ds:si+bx]
+		mov al, [ds:di+bx]
+		cmp ax, 0x0000
+		je string_compare_equal
+		cmp ah, al
+		je string_compare_loop
+		jmp string_compare_inequal
+	string_compare_equal:
+		mov ax, 0x0000
+		jmp compare_terminate:
+	string_compare_inequal:
+		mov ax, 0x0001
+		jmp compare_terminate:
+	string_compare_terminate:
+		pop di
+		pop si
+		jmp string_return
 string_return:
 	ret
 string_end:	
