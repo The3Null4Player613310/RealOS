@@ -428,20 +428,6 @@ fat_load_file:		; load (file) si to (offset) bx
 		;call put_char
 		pop bx
 		jmp fat_return
-;fat_compare_test:
-;	mov si, addr_query
-;	mov di, addr_entry
-;	call fat_compare
-;	jnz fat_compare_test_fail
-;	call debug_print_hex_word
-;	mov al, 'S'
-;	call put_char
-;	jmp fat_return
-;	fat_compare_test_fail:
-;	call debug_print_hex_word
-;	mov al, 'D'
-;	call put_char
-;	jmp fat_return
 fat_return:
 	ret
 fat_end:
